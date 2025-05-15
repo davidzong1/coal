@@ -54,8 +54,7 @@
 #include <iostream>
 
 using namespace coal;
-using RowVector = Eigen::RowVector<Scalar, Eigen::Dynamic>;
-
+using RowVector = Eigen::Matrix<Scalar, 1, Eigen::Dynamic>;
 template <typename BV>
 void test_constant_hfields(const Eigen::DenseIndex nx,
                            const Eigen::DenseIndex ny,

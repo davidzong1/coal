@@ -18,26 +18,25 @@
   <build_depend>doxygen</build_depend>
   <!-- pylatexenc dependency commented since pip packages are not available on the buildfarm -->
   <!--<build_depend>python3-pylatexenc</build_depend>-->
-  <build_depend condition="$ROS_PYTHON_VERSION == 2">python-lxml</build_depend>
-  <build_depend condition="$ROS_PYTHON_VERSION == 3">python3-lxml</build_depend>
+  <build_depend>python3-lxml</build_depend>
   <doc_depend>doxygen</doc_depend>
-  <doc_depend condition="$ROS_PYTHON_VERSION == 2">python-lxml</doc_depend>
-  <doc_depend condition="$ROS_PYTHON_VERSION == 3">python3-lxml</doc_depend>
-  <depend condition="$ROS_PYTHON_VERSION == 2">python</depend>
-  <depend condition="$ROS_PYTHON_VERSION == 2">python-numpy</depend>
-  <depend condition="$ROS_PYTHON_VERSION == 3">python3</depend>
-  <depend condition="$ROS_PYTHON_VERSION == 3">python3-numpy</depend>
+  <doc_depend>python3-lxml</doc_depend>
+  
+  <!-- ROS2只使用Python3，去除Python2的条件 -->
+  <depend>python3</depend>
+  <depend>python3-numpy</depend>
   <depend>eigen</depend>
   <depend>boost</depend>
   <depend>assimp</depend>
   <depend>liboctomap-dev</depend>
   <depend>eigenpy</depend>
 
-  <!-- The following tag is recommended by REP-136 -->
-  <exec_depend condition="$ROS_VERSION == 1">catkin</exec_depend>
-
+  <!-- ROS2构建工具依赖 -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>cmake</buildtool_depend>
+  
+  <!-- ROS2导出标签 -->
   <export>
-    <build_type>cmake</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

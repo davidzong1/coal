@@ -549,13 +549,13 @@ endif(BUILD_TESTING)
 
 PKG_CONFIG_APPEND_LIBS("coal")
 if(COAL_HAS_OCTOMAP)
-  # FCL_HAVE_OCTOMAP kept for backward compatibility reasons.
+  # FCL_HAVE_OCTOMAP kept for backward compatibility reasons.
   PKG_CONFIG_APPEND_CFLAGS(
     "-DCOAL_HAS_OCTOMAP -DCOAL_HAVE_OCTOMAP -DFCL_HAVE_OCTOMAP -DOCTOMAP_MAJOR_VERSION=${OCTOMAP_MAJOR_VERSION} -DOCTOMAP_MINOR_VERSION=${OCTOMAP_MINOR_VERSION} -DOCTOMAP_PATCH_VERSION=${OCTOMAP_PATCH_VERSION}"
   )
 endif(COAL_HAS_OCTOMAP)
 
-# Install catkin package.xml
+# 安装package.xml文件用于ROS2兼容性
 install(FILES package.xml DESTINATION share/${PROJECT_NAME})
 
 if(COAL_BACKWARD_COMPATIBILITY_WITH_HPP_FCL)
@@ -575,5 +575,74 @@ if(COAL_BACKWARD_COMPATIBILITY_WITH_HPP_FCL)
   include("${JRL_CMAKE_MODULES}/install-helpers.cmake")
   ADD_INSTALL_TARGET(NAME hpp-fcl-compatibility COMPONENT hpp-fcl-compatibility)
 endif()
+
+# 添加assimp策略设置以消除警告
+if(POLICY CMP0012)
+  cmake_policy(SET CMP0012 NEW)
+endif()
+
+# 使用CMake标准配置文件来支持find_package
+include(CMakePackageConfigHelpers)
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in")
+  # 如果配置模板不存在，创建一个基本的配置文件
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    "# Auto-generated ${PROJECT_NAME} config file
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(Eigen3)
+find_dependency(Boost COMPONENTS chrono thread date_time serialization filesystem)
+find_dependency(assimp)
+
+if(@COAL_HAS_OCTOMAP@)
+  find_dependency(octomap)
+endif()
+
+include(\"\${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}Targets.cmake\")
+")
+  
+  # 生成版本文件
+  write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+  )
+  
+  # 安装配置文件
+  install(
+    FILES
+      "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+      "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    DESTINATION lib/cmake/${PROJECT_NAME}
+  )
+else()
+  # 使用现有模板
+  configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
+  )
+  
+  write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+  )
+  
+  install(
+    FILES
+      "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+      "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    DESTINATION lib/cmake/${PROJECT_NAME}
+  )
+endif()
+
+# 仅添加必要的安装目标命令，避免重复
+# 注意: 通过PROJECT_FINALIZE将导出targets，此处不需要重复导出
+# 确保头文件安装
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
 
 SETUP_PROJECT_FINALIZE()
